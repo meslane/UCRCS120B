@@ -40,6 +40,10 @@ void Tick() {
                     ix = 0;
                 }
             }
+            else if (PINA == 0x80) {
+                state = LOCKED;
+                ix = 0;
+            }
             else if (PINA != 0x00 && PINA != prevInput && PINA != code[ix]) {
                 ix = 0; /* reset if failed */
             }

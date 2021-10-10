@@ -20,7 +20,7 @@ void Tick() {
             }
             break;
         case PRESSPOUND:
-            if ((PINA & 0x04) == 0) { /* release pound */
+            if ((PINA & 0x07) == 0) { /* release pound */
                 state = RELPOUND;
             }
             else if ((PINA & 0x07) != 0x04) {
