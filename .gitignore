@@ -3,3 +3,6 @@ simavr
 *.elf
 *.zip
 *.vcd
+*.atsln
+*.cproj
+*.xml
