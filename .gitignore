@@ -1,4 +1,6 @@
 simavr
+FinalProject/Debug
+FinalProject/Release
 *.o
 *.elf
 *.zip
