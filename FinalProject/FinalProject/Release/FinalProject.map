@@ -72,8 +72,6 @@ Discarded input sections
  .text.printShort
                 0x00000000       0xb8 main.o
  .text.GetBit   0x00000000       0x10 main.o
- .text.Tick_Spawn
-                0x00000000        0x6 main.o
  .text          0x00000000        0x0 pwm.o
  .data          0x00000000        0x0 pwm.o
  .bss           0x00000000        0x0 pwm.o
@@ -196,8 +194,6 @@ Discarded input sections
  .bss           0x00000000        0x0 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
  .text.libgcc.mul
                 0x00000000        0x0 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
- .text.libgcc.div
-                0x00000000       0x28 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
  .text.libgcc   0x00000000        0x0 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
  .text.libgcc.prologue
                 0x00000000        0x0 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
@@ -386,7 +382,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000      0x6d6
+.text           0x00000000      0x836
  *(.vectors)
  .vectors       0x00000000       0x8c E:/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.6.364/gcc/dev/atmega1284/avr51/crtatmega1284.o
                 0x00000000                __vector_default
@@ -500,51 +496,60 @@ END GROUP
                 0x00000122       0x10 io.o
                 0x00000122                LCD_WriteData
  .text.Tick_MoveObjects
-                0x00000132       0x98 main.o
+                0x00000132       0xa6 main.o
                 0x00000132                Tick_MoveObjects
  .text.Tick_DrawObjects
-                0x000001ca       0x72 main.o
-                0x000001ca                Tick_DrawObjects
+                0x000001d8       0x72 main.o
+                0x000001d8                Tick_DrawObjects
  .text.ADC_init
-                0x0000023c        0xc main.o
-                0x0000023c                ADC_init
+                0x0000024a        0xc main.o
+                0x0000024a                ADC_init
+ .text.RNGRange
+                0x00000256       0x1a main.o
+                0x00000256                RNGRange
+ .text.Tick_Spawn
+                0x00000270       0xda main.o
+                0x00000270                Tick_Spawn
  .text.getController
-                0x00000248       0x3e main.o
-                0x00000248                getController
+                0x0000034a       0x3e main.o
+                0x0000034a                getController
  .text.Tick_PollController
-                0x00000286       0x10 main.o
-                0x00000286                Tick_PollController
+                0x00000388       0x10 main.o
+                0x00000388                Tick_PollController
  .text.startup.main
-                0x00000296      0x17e main.o
-                0x00000296                main
+                0x00000398      0x1b4 main.o
+                0x00000398                main
  .text.loadCustomChar
-                0x00000414       0x30 sprite.o
-                0x00000414                loadCustomChar
+                0x0000054c       0x30 sprite.o
+                0x0000054c                loadCustomChar
  .text.loadSpriteTable
-                0x00000444       0x2a sprite.o
-                0x00000444                loadSpriteTable
+                0x0000057c       0x2a sprite.o
+                0x0000057c                loadSpriteTable
  .text.initSprites
-                0x0000046e       0x72 sprite.o
-                0x0000046e                initSprites
- .text.moveY    0x000004e0       0x76 sprite.o
-                0x000004e0                moveY
- .text.moveX    0x00000556       0x5c sprite.o
-                0x00000556                moveX
- .text.draw     0x000005b2       0x3e sprite.o
-                0x000005b2                draw
- .text.TimerOn  0x000005f0       0x48 timer.o
-                0x000005f0                TimerOn
+                0x000005a6       0x72 sprite.o
+                0x000005a6                initSprites
+ .text.moveY    0x00000618       0x76 sprite.o
+                0x00000618                moveY
+ .text.moveX    0x0000068e       0x5c sprite.o
+                0x0000068e                moveX
+ .text.draw     0x000006ea       0x3e sprite.o
+                0x000006ea                draw
+ .text.TimerOn  0x00000728       0x48 timer.o
+                0x00000728                TimerOn
  .text.__vector_13
-                0x00000638       0x78 timer.o
-                0x00000638                __vector_13
+                0x00000770       0x78 timer.o
+                0x00000770                __vector_13
  .text.TimerSet
-                0x000006b0       0x22 timer.o
-                0x000006b0                TimerSet
-                0x000006d2                . = ALIGN (0x2)
+                0x000007e8       0x22 timer.o
+                0x000007e8                TimerSet
+ .text.libgcc.div
+                0x0000080a       0x28 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
+                0x0000080a                __udivmodhi4
+                0x00000832                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000006d2        0x0 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
-                0x000006d2                _exit
-                0x000006d2                exit
+ .fini9         0x00000832        0x0 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
+                0x00000832                _exit
+                0x00000832                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -563,11 +568,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000006d2        0x4 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
+ .fini0         0x00000832        0x4 e:/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
  *(.fini0)
-                0x000006d6                _etext = .
+                0x00000836                _etext = .
 
-.data           0x00800100      0x186 load address 0x000006d6
+.data           0x00800100      0x188 load address 0x00000836
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -591,43 +596,45 @@ END GROUP
                 0x00800240                xWingSprites
  *(.gnu.linkonce.d*)
  *(.rodata)
- .rodata        0x00800280        0x6 main.o
+ .rodata        0x00800280        0x8 main.o
  *(.rodata*)
  *(.gnu.linkonce.r*)
-                0x00800286                . = ALIGN (0x2)
-                0x00800286                _edata = .
-                0x00800286                PROVIDE (__data_end, .)
+                0x00800288                . = ALIGN (0x2)
+                0x00800288                _edata = .
+                0x00800288                PROVIDE (__data_end, .)
 
-.bss            0x00800286       0x74
-                0x00800286                PROVIDE (__bss_start, .)
+.bss            0x00800288       0x7f
+                0x00800288                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
- .bss.DrawObjects.1766
-                0x00800286        0xb main.o
- .bss.MoveObjects.1765
-                0x00800291        0xb main.o
- .bss.PollController.1764
-                0x0080029c        0xb main.o
- .bss.loop.1725
-                0x008002a7        0x1 main.o
- .bss.sprites   0x008002a8       0x48 main.o
-                0x008002a8                sprites
+ .bss.Spawn.1771
+                0x00800288        0xb main.o
+ .bss.DrawObjects.1770
+                0x00800293        0xb main.o
+ .bss.MoveObjects.1769
+                0x0080029e        0xb main.o
+ .bss.PollController.1768
+                0x008002a9        0xb main.o
+ .bss.loop.1729
+                0x008002b4        0x1 main.o
+ .bss.sprites   0x008002b5       0x48 main.o
+                0x008002b5                sprites
  *(COMMON)
- COMMON         0x008002f0        0x1 main.o
-                0x008002f0                controllerInput
- COMMON         0x008002f1        0x9 timer.o
-                0x008002f1                _avr_timer_cntcurr
-                0x008002f5                _avr_timer_M
-                0x008002f9                TimerFlag
-                0x008002fa                PROVIDE (__bss_end, .)
-                0x000006d6                __data_load_start = LOADADDR (.data)
-                0x0000085c                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x008002fd        0x1 main.o
+                0x008002fd                controllerInput
+ COMMON         0x008002fe        0x9 timer.o
+                0x008002fe                _avr_timer_cntcurr
+                0x00800302                _avr_timer_M
+                0x00800306                TimerFlag
+                0x00800307                PROVIDE (__bss_end, .)
+                0x00000836                __data_load_start = LOADADDR (.data)
+                0x000009be                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x008002fa        0x0
+.noinit         0x00800307        0x0
                 [!provide]                PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                PROVIDE (__noinit_end, .)
-                0x008002fa                _end = .
+                0x00800307                _end = .
                 [!provide]                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0

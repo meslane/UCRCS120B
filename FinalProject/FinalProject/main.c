@@ -26,6 +26,10 @@ unsigned char RNGBoolean(unsigned char prob) {
 	return ((ADC % 10) < prob) ? 1 : 0;
 }
 
+unsigned char RNGRange(unsigned char low, unsigned char high) {
+	return (ADC % (high - low + 1)) + low;
+}
+
 /* begin scheduler code */
 typedef struct _task {
 	signed char state;
@@ -159,7 +163,9 @@ int Tick_MoveObjects(int state) {
 							moveX(&sprites[i], -1);
 							break;
 						case LPLAYER:
-							moveX(&sprites[i], 1);
+							if ((loop % 2) == 0) {
+								moveX(&sprites[i], 1);
+							}
 							break;
 					}
 				}
@@ -202,7 +208,25 @@ enum Spawn_States {S_SPAWN};
 int Tick_Spawn(int state) {
 	switch(state) {
 		case S_SPAWN:
-			
+			if (RNGRange(0, 5) == 1 && sprites[1].show == 0) { //TIE Fighter
+				sprites[1].show = 1;
+				sprites[1].x = 16;
+				sprites[1].y = 0;
+				sprites[1].subY = RNGRange(0, sprites[1].subYMax);
+				loadCustomChar(sprites[1].table[sprites[1].subY], sprites[1].spriteID);
+			}
+			if (GetBit(controllerInput, 7) == 1 && sprites[2].show == 0) { //Player Laser
+				sprites[2].show = 1;
+				sprites[2].x = 3;
+				sprites[2].y = sprites[0].y;
+				sprites[2].subY = sprites[0].subY;
+				loadCustomChar(sprites[2].table[sprites[2].subY], sprites[2].spriteID);
+			}
+			if (RNGRange(0, 5) == 2 && sprites[6].show == 0) { //Turret
+				sprites[6].show = 1;
+				sprites[6].x = 16;
+				sprites[6].y = 1;
+			}
 			break;
 		default:
 			state = S_SPAWN;
@@ -225,9 +249,9 @@ int main(void) {
 	MCUCR = tmp;
 	MCUCR = tmp;
 	
-	static task PollController, MoveObjects, DrawObjects;
-	task *tasks[] = {&PollController, &MoveObjects, &DrawObjects};
-	const unsigned short numTasks = 3;
+	static task PollController, MoveObjects, DrawObjects, Spawn;
+	task *tasks[] = {&PollController, &MoveObjects, &DrawObjects, &Spawn};
+	const unsigned short numTasks = 4;
 	
 	const char start = -1;
 	
@@ -245,6 +269,11 @@ int main(void) {
 	DrawObjects.period = 100;
 	DrawObjects.elapsedTime = DrawObjects.period;
 	DrawObjects.TickFct = &Tick_DrawObjects;
+	
+	Spawn.state = start;
+	Spawn.period = 100;
+	Spawn.elapsedTime = Spawn.period;
+	Spawn.TickFct = &Tick_Spawn;
 	
 	const unsigned short GCD = 50;
 	

@@ -192,7 +192,7 @@ void moveX(gameObj *o, int dir) {
 		case 1:
 			LCD_Cursor(o->x + (16 * o->y));
 			LCD_WriteData(' ');
-			if (o->x < 17) {
+			if (o->x < 16) {
 				o->x++;
 			} else {
 				o->x = 0;
