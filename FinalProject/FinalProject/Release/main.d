@@ -11,7 +11,7 @@ main.d main.o: .././main.c \
  e:\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\fuse.h \
  e:\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\lock.h \
  e:\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.h \
- .././sprite.h .././io.h .././timer.h .././pwm.h
+ .././sprite.h .././io.h .././timer.h .././pwm.h .././sound.h
 
 e:\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\io.h:
 
@@ -44,3 +44,5 @@ e:\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.
 .././timer.h:
 
 .././pwm.h:
+
+.././sound.h:

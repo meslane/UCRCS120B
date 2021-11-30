@@ -40,6 +40,7 @@ C_SRCS +=  \
 ../io.c \
 ../main.c \
 ../pwm.c \
+../sound.c \
 ../sprite.c \
 ../timer.c
 
@@ -54,6 +55,7 @@ OBJS +=  \
 io.o \
 main.o \
 pwm.o \
+sound.o \
 sprite.o \
 timer.o
 
@@ -61,6 +63,7 @@ OBJS_AS_ARGS +=  \
 io.o \
 main.o \
 pwm.o \
+sound.o \
 sprite.o \
 timer.o
 
@@ -68,6 +71,7 @@ C_DEPS +=  \
 io.d \
 main.d \
 pwm.d \
+sound.d \
 sprite.d \
 timer.d
 
@@ -75,6 +79,7 @@ C_DEPS_AS_ARGS +=  \
 io.d \
 main.d \
 pwm.d \
+sound.d \
 sprite.d \
 timer.d
 
@@ -107,6 +112,13 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./pwm.o: .././pwm.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)E:\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DNDEBUG  -I"E:\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\include"  -Os -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -Wall -mmcu=atmega1284 -B "E:\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\gcc\dev\atmega1284" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+./sound.o: .././sound.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)E:\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DNDEBUG  -I"E:\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\include"  -Os -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -Wall -mmcu=atmega1284 -B "E:\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\gcc\dev\atmega1284" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

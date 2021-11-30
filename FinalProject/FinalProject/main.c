@@ -16,6 +16,10 @@
 #include "io.h"
 #include "timer.h"
 #include "pwm.h"
+#include "sound.h"
+
+#define NULL 0
+#define GAMELEN 300
 
 /* ADC Functions */
 void ADC_init() {
@@ -128,11 +132,14 @@ unsigned short score;
 unsigned char ammo;
 gameObj sprites[8] = {{0}};
 unsigned char gameState; //0 = start screen, 1 = running, 2 = endscreen
+audio* currentTrack;
+unsigned short cycles;
 
 void initGame() {
 	ammo = 10;
 	score = 0;
 	gameState = 1;
+	cycles = 0;
 }
 
 /* Tasks */
@@ -308,12 +315,18 @@ int Tick_Spawn(int state) {
 				sprites[2].y = sprites[0].y;
 				sprites[2].subY = sprites[0].subY;
 				loadCustomChar(sprites[2].table[sprites[2].subY], sprites[2].spriteID);
+				currentTrack = &laserBlast;
 				ammo--;
 			}
 			if ((ADC % 5) == 2 && sprites[6].show == 0) { //Turret
 				sprites[6].show = 1;
 				sprites[6].x = 16;
 				sprites[6].y = 1;
+			}
+			if (cycles >= GAMELEN && sprites[7].show == 0) { //Port
+				sprites[7].show = 1;
+				sprites[7].x = 16;
+				sprites[7].y = 1;
 			}
 			break;
 		default:
@@ -382,6 +395,7 @@ int Tick_Collisions(int state) {
 					if ((i != j) && areColliding(sprites[i], sprites[j]) == 1) {
 						killSprite(&sprites[i]);
 						killSprite(&sprites[j]);
+						currentTrack = &explosion;
 					}
 				}
 			}
@@ -393,8 +407,72 @@ int Tick_Collisions(int state) {
 	return state;
 }
 
+/* play audio task */
+enum Audio_States {A_INIT, A_MENU, A_GAME, A_END};
+
+void playCurrentTrack() {
+	static unsigned short i = 0; //note index
+	static unsigned short n = 0; //note length
+	
+	if (currentTrack != NULL) {
+		set_PWM(frequencies[currentTrack->notes[i]]);
+		n++;
+		
+		if (n == currentTrack->noteLen[i]) {
+			n = 0;
+			i++;
+		}
+		
+		if (i >= currentTrack->length) {
+			currentTrack = NULL;
+			i = 0;
+			n = 0;
+		}
+	}
+	else {
+		set_PWM(30000);
+		i = 0;
+		n = 0;
+	}
+}
+
+int Tick_Audio(int state) {
+	playCurrentTrack();
+	
+	switch(state) { /* transitions */
+		case A_INIT:
+		if (gameState == 0) {
+			state = A_MENU;
+		}
+		break;
+		case A_MENU:
+		if (currentTrack == NULL) {
+			currentTrack = &mainTheme;
+		}
+		if (gameState == 1) {
+			state = A_GAME;
+			currentTrack = NULL;
+		}
+		break;
+		case A_GAME:
+		case A_END:
+		if (gameState == 2) {
+			state = A_END;
+		}
+		else if (gameState == 0) {
+			state = A_INIT;
+		}
+		break;
+		default:
+		state = A_INIT;
+		break;
+	}
+	
+	return state;
+};
+
 /* end game task */
-enum Endgame_States {EG_INIT, EG_START, EG_RUN, EG_DISP, EG_END};
+enum Endgame_States {EG_INIT, EG_START, EG_RUN, EG_DISP, EG_END, EG_WIN};
 	
 int Tick_Endgame(int state) {
 	switch(state) { /* transitions */
@@ -414,7 +492,8 @@ int Tick_Endgame(int state) {
 			}
 			break;
 		case EG_RUN:
-			if (sprites[0].show == 0) { //if XWING dies
+			cycles++;
+			if (sprites[0].show == 0 || cycles > (GAMELEN + 64)) { //if XWING dies or port is missed
 				gameState = 2;
 				state = EG_DISP;
 			}
@@ -456,9 +535,9 @@ int main(void) {
 	MCUCR = tmp;
 	MCUCR = tmp;
 	
-	static task PollController, MoveObjects, DrawObjects, Spawn, DoCollisions, Endgame;
-	task *tasks[] = {&Endgame, &PollController, &MoveObjects, &Spawn, &DrawObjects, &DoCollisions};
-	const unsigned short numTasks = 6;
+	static task PollController, MoveObjects, DrawObjects, Spawn, DoCollisions, Endgame, Audio;
+	task *tasks[] = {&Endgame, &PollController, &MoveObjects, &Spawn, &DrawObjects, &DoCollisions, &Audio};
+	const unsigned short numTasks = 7;
 	
 	const char start = -1;
 	
@@ -492,6 +571,11 @@ int main(void) {
 	Endgame.elapsedTime = Endgame.period;
 	Endgame.TickFct = &Tick_Endgame;
 	
+	Audio.state = start;
+	Audio.period = 100;
+	Audio.elapsedTime = Audio.period;
+	Audio.TickFct = &Tick_Audio;
+	
 	const unsigned short GCD = 50;
 	
 	TimerSet(GCD);
@@ -503,6 +587,8 @@ int main(void) {
 	loadSpriteTable(spriteTable, 8);
 	
 	//initSprites(sprites);
+	
+	PWM_on();
 	
     while (1) {
 		for (unsigned short i = 0; i < numTasks; i++) {

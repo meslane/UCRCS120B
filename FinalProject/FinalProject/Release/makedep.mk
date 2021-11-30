@@ -8,6 +8,8 @@ main.c
 
 pwm.c
 
+sound.c
+
 sprite.c
 
 timer.c
