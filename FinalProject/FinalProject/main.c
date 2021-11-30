@@ -122,10 +122,22 @@ unsigned char getController() {
 	return data;
 }
 
+/* Global Variables */
+unsigned char controllerInput;  
+unsigned short score;
+unsigned char ammo;
+gameObj sprites[8] = {{0}};
+unsigned char gameState; //0 = start screen, 1 = running, 2 = endscreen
+
+void initGame() {
+	ammo = 10;
+	score = 0;
+	gameState = 1;
+}
+
 /* Tasks */
 /* Poll Controller */
 enum PollController_States {PC_GET};
-unsigned char controllerInput; 
 
 int Tick_PollController(int state) {
 	switch(state) {
@@ -141,13 +153,32 @@ int Tick_PollController(int state) {
 }
 
 /* Move Objects */
-enum MoveObjects_States {MO_INIT, MO_MOVE};
-gameObj sprites[8] = {{0}};
+enum MoveObjects_States {MO_INIT, MO_MOVE, MO_END};
 
 int Tick_MoveObjects(int state) {
 	static unsigned char loop = 0;
 	
-	switch(state) {
+	switch(state) { /* transitions */
+		case MO_INIT:
+			if (gameState == 1) {
+				state = MO_MOVE;
+			}
+			break;
+		case MO_MOVE:
+		case MO_END:
+			if (gameState == 2) {
+				state = MO_END;
+			}
+			else if (gameState == 0) {
+				state = MO_INIT;
+			}
+			break;
+		default:
+			state = MO_INIT;
+			break;
+	}
+	
+	switch(state) { /* actions */
 		case MO_MOVE:
 			for (unsigned int i = 0; i < (sizeof(sprites) / sizeof(gameObj)); i++) {
 				if (sprites[i].spriteID == XWING) {
@@ -185,7 +216,6 @@ int Tick_MoveObjects(int state) {
 			}
 			break;
 		default:
-			state = MO_MOVE;
 			break;
 	}
 	
@@ -195,10 +225,30 @@ int Tick_MoveObjects(int state) {
 }
 
 /* Draw Objects */
-enum DrawObjects_States {DO_DRAW};
+enum DrawObjects_States {DO_INIT, DO_DRAW, DO_END};
 
 int Tick_DrawObjects(int state) {
-	switch(state) {
+	switch(state) { /* transitions */
+		case DO_INIT:
+			if (gameState == 1) {
+				state = DO_DRAW;	
+			}
+			break;
+		case DO_DRAW:
+		case DO_END:
+			if (gameState == 2) {
+				state = DO_END;
+			}
+			else if (gameState == 0) {
+				state = DO_INIT;
+			}
+			break;
+		default:
+			state = DO_INIT;
+			break;		
+	}
+	
+	switch(state) { /* actions */
 		case DO_DRAW:
 			for (unsigned int i = 0; i < (sizeof(sprites) / sizeof(gameObj)); i++) {
 				if (sprites[i].show == 1) {
@@ -208,7 +258,6 @@ int Tick_DrawObjects(int state) {
 			LCD_Cursor(0); //hide cursor
 			break;
 		default:
-			state = DO_DRAW;
 			break;
 	}
 	
@@ -216,8 +265,7 @@ int Tick_DrawObjects(int state) {
 }
 
 /* Spawn Enemies */
-enum Spawn_States {S_SPAWN};
-unsigned char ammo = 10;
+enum Spawn_States {S_INIT, S_SPAWN, S_END};
 	
 int Tick_Spawn(int state) {
 	PORTA &= 0x01;
@@ -226,7 +274,26 @@ int Tick_Spawn(int state) {
 	PORTD &= 0xF8;
 	PORTD |= (((power(2, (unsigned short)ammo) - 1) >> 8) & 0x07);
 	
-	switch(state) {
+	switch(state) { /* transitions */
+		case S_INIT:
+			if (gameState == 1) {
+				state = S_SPAWN;	
+			}
+			break;
+		case S_SPAWN:
+		case S_END:
+			if (gameState == 2) {
+				state = S_END;
+			}
+			else if (gameState == 0) {
+				state = S_INIT;
+			}
+		default:
+			state = S_INIT;
+			break;
+	}
+	
+	switch(state) { /* actions */
 		case S_SPAWN:
 			if ((ADC % 5) == 1 && sprites[1].show == 0) { //TIE Fighter
 				sprites[1].show = 1;
@@ -250,7 +317,6 @@ int Tick_Spawn(int state) {
 			}
 			break;
 		default:
-			state = S_SPAWN;
 			break;
 	}
 	
@@ -258,7 +324,7 @@ int Tick_Spawn(int state) {
 }
 
 /* Do Collisions */
-enum Coll_States {DC_COLL};
+enum Coll_States {DC_INIT, DC_COLL, DC_END};
 	
 unsigned char areColliding(gameObj a, gameObj b) {
 	if (a.spriteID == LPLAYER) {
@@ -275,11 +341,40 @@ void killSprite(gameObj *a) {
 	LCD_WriteData(' ');
 	LCD_Cursor(0);
 	
+	switch(a->spriteID) {
+		case TIE:
+			score += 20;
+			break;
+		case TURRET:
+			score += 10;
+			break;
+	}
+	
 	a->x = 0;
 	a->show = 0;	
 }
 	
 int Tick_Collisions(int state) {
+	switch(state) { /* transitions */
+		case DC_INIT:
+			if (gameState == 1) {
+				state = DC_COLL;	
+			}
+			break;
+		case DC_COLL:
+		case DC_END:
+			if (gameState == 2) {
+				state = DC_END;
+			}
+			else if (gameState == 0) {
+				state = DC_INIT;
+			}
+			break;
+		default:
+			state = DC_INIT;
+			break;
+	}
+	
 	switch(state) { /* actions */
 		case DC_COLL:
 			for (unsigned char i = 0; i < 8; i++) {
@@ -295,11 +390,53 @@ int Tick_Collisions(int state) {
 			break;
 	}
 	
+	return state;
+}
+
+/* end game task */
+enum Endgame_States {EG_INIT, EG_START, EG_RUN, EG_DISP, EG_END};
+	
+int Tick_Endgame(int state) {
 	switch(state) { /* transitions */
-		case DC_COLL:
+		case EG_INIT:
+			gameState = 0;
+			LCD_DisplayString(1, "   Trench Run     Press  START");
+			LCD_Cursor(0);
+			
+			state = EG_START;
+		case EG_START:
+			if (GetBit(controllerInput, 4) == 1) {
+				initGame();
+				initSprites(sprites);
+				gameState = 1;
+				LCD_ClearScreen();
+				state = EG_RUN;
+			}
+			break;
+		case EG_RUN:
+			if (sprites[0].show == 0) { //if XWING dies
+				gameState = 2;
+				state = EG_DISP;
+			}
+			if (GetBit(controllerInput, 5) == 1) { //reset
+				state = EG_INIT;
+			}
+			break;
+		case EG_DISP:
+			ammo = 0;
+			LCD_ClearScreen();
+			LCD_DisplayString(1, "You Lose!       Score:");
+			printShort(score, 25);
+			LCD_Cursor(0);
+			state = EG_END;
+			break;
+		case EG_END:
+			if (GetBit(controllerInput, 5) == 1) {
+				state = EG_INIT;
+			}
 			break;
 		default:
-			state = DC_COLL;
+			state = EG_INIT;
 			break;
 	}
 	
@@ -319,9 +456,9 @@ int main(void) {
 	MCUCR = tmp;
 	MCUCR = tmp;
 	
-	static task PollController, MoveObjects, DrawObjects, Spawn, DoCollisions;
-	task *tasks[] = {&PollController, &MoveObjects, &Spawn, &DrawObjects, &DoCollisions};
-	const unsigned short numTasks = 5;
+	static task PollController, MoveObjects, DrawObjects, Spawn, DoCollisions, Endgame;
+	task *tasks[] = {&Endgame, &PollController, &MoveObjects, &Spawn, &DrawObjects, &DoCollisions};
+	const unsigned short numTasks = 6;
 	
 	const char start = -1;
 	
@@ -350,6 +487,11 @@ int main(void) {
 	DoCollisions.elapsedTime = DoCollisions.period;
 	DoCollisions.TickFct = &Tick_Collisions;
 	
+	Endgame.state = start;
+	Endgame.period = 50;
+	Endgame.elapsedTime = Endgame.period;
+	Endgame.TickFct = &Tick_Endgame;
+	
 	const unsigned short GCD = 50;
 	
 	TimerSet(GCD);
@@ -360,7 +502,7 @@ int main(void) {
 	
 	loadSpriteTable(spriteTable, 8);
 	
-	initSprites(sprites);
+	//initSprites(sprites);
 	
     while (1) {
 		for (unsigned short i = 0; i < numTasks; i++) {

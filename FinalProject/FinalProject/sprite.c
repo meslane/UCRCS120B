@@ -4,7 +4,6 @@
  * Created: 11/20/2021 12:35:19 PM
  *  Author: Merrick
  */ 
-
 #include "sprite.h"
 #include "io.h"
 
@@ -109,6 +108,10 @@ void printAllSprites(unsigned char pos) {
 }
 
 void initSprites(gameObj sprites[8]) {
+	for (unsigned char i = 0; i < 8; i++) { //clear to 0
+		memset(&sprites[i], 0, sizeof(sprites[i]));
+	}
+	
 	sprites[0].x = 3;
 	sprites[0].y = 1;
 	sprites[0].subY = 0;
