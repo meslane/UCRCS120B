@@ -370,13 +370,22 @@ int Tick_Spawn(int state) {
 	
 	switch(state) { /* actions */
 		case S_SPAWN:
-			if ((ADC % 5) == 1 && sprites[1].show == 0) { //TIE Fighter
+			if ((ADC % 5) == 1 && sprites[1].show == 0) { //TIE Fighter 1
 				sprites[1].show = 1;
 				sprites[1].x = 16;
 				sprites[1].y = 0;
 				sprites[1].subY = RNGRange(0, sprites[1].subYMax);
 				loadCustomChar(sprites[1].table[sprites[1].subY], sprites[1].spriteID);
 			}
+			/*
+			if ((ADC % 5) == 4 && sprites[3].show == 0) { //TIE Fighter 2
+				sprites[3].show = 1;
+				sprites[3].x = 16;
+				sprites[3].y = 0;
+				sprites[3].subY = RNGRange(0, sprites[3].subYMax);
+				loadCustomChar(sprites[3].table[sprites[3].subY], sprites[3].spriteID);
+			}
+			*/
 			if (GetBit(controllerInput, 7) == 1 && sprites[2].show == 0 && ammo > 0) { //Player Laser
 				sprites[2].show = 1;
 				sprites[2].x = 4;
@@ -394,15 +403,20 @@ int Tick_Spawn(int state) {
 				loadCustomChar(sprites[4].table[sprites[4].subY], sprites[4].spriteID);
 				torpedo--;
 			}
-			if ((ADC % 5) == 2 && sprites[6].show == 0) { //Turret
-				sprites[6].show = 1;
-				sprites[6].x = 16;
-				sprites[6].y = 1;
-			}
 			if (cycles >= GAMELEN && cycles <= (GAMELEN + 5) && sprites[7].show == 0) { //Port
 				sprites[7].show = 1;
 				sprites[7].x = 16;
 				sprites[7].y = 1;
+			}
+			else if ((ADC % 5) == 3 && sprites[5].show == 0) { //Turret 1
+				sprites[5].show = 1;
+				sprites[5].x = 16;
+				sprites[5].y = 1;
+			}
+			else if ((ADC % 5) == 4 && sprites[6].show == 0) { //Turret 2
+				sprites[6].show = 1;
+				sprites[6].x = 16;
+				sprites[6].y = 1;
 			}
 			break;
 		default:
@@ -606,7 +620,7 @@ int Tick_Endgame(int state) {
 			torpedo = 0;
 			LCD_ClearScreen();
 			LCD_DisplayString(1, "You Lose!       Score:");
-			printShort(score, 25);
+			printDec(score, 24);
 			LCD_Cursor(0);
 			state = EG_END;
 			break;
@@ -616,7 +630,7 @@ int Tick_Endgame(int state) {
 			torpedo = 0;
 			LCD_ClearScreen();
 			LCD_DisplayString(1, "You Win!        Score:");
-			printShort(score, 25);
+			printDec(score, 24);
 			LCD_Cursor(0);
 			state = EG_END;
 			break;
@@ -673,7 +687,7 @@ int main(void) {
 	Spawn.TickFct = &Tick_Spawn;
 	
 	DoCollisions.state = start;
-	DoCollisions.period = 50;
+	DoCollisions.period = 100;
 	DoCollisions.elapsedTime = DoCollisions.period;
 	DoCollisions.TickFct = &Tick_Collisions;
 	

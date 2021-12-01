@@ -134,16 +134,14 @@ void initSprites(gameObj sprites[8]) {
 	sprites[3].subYMax = 5;
 	sprites[3].spriteID = LTIE;
 	sprites[3].table = laserSprites;
-	sprites[3].x = 15;
-	sprites[3].show = 1;
 	
 	sprites[4].subYMax = 5;
 	sprites[4].spriteID = TORP;
 	sprites[4].table = torpedoSprites;
 	
-	sprites[5].subYMax = 6;
-	sprites[5].spriteID = LTURRET;
-	sprites[5].table = tlSprites;
+	//sprites[5].subYMax = 6;
+	sprites[5].spriteID = TURRET;
+	//sprites[5].table = tlSprites;
 	
 	sprites[6].spriteID = TURRET;
 	
