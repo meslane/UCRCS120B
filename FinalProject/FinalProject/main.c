@@ -80,6 +80,21 @@ unsigned char GetBit(unsigned char var, unsigned char pos) {
 	return ((var & (1 << pos)) != 0) ? 1 : 0;
 }
 
+void SetBit(unsigned char* var, unsigned char pos, unsigned char val) {
+	if (val != 0) {
+		*var |= (1 << pos);
+	}
+	else {
+		*var &= ~(1 << pos);
+	}
+}
+
+void delayCycles(unsigned short cycles) {
+	for (unsigned short i = 0; i < cycles; i++) {
+		asm("nop");
+	}
+}
+
 unsigned short power(unsigned short val, unsigned short exp) {
 	unsigned short ret = val;
 	
@@ -130,6 +145,7 @@ unsigned char getController() {
 unsigned char controllerInput;  
 unsigned short score;
 unsigned char ammo;
+unsigned char torpedo;
 gameObj sprites[8] = {{0}};
 unsigned char gameState; //0 = start screen, 1 = running, 2 = endscreen
 audio* currentTrack;
@@ -137,6 +153,7 @@ unsigned short cycles;
 
 void initGame() {
 	ammo = 10;
+	torpedo = 1;
 	score = 0;
 	gameState = 1;
 	cycles = 0;
@@ -218,6 +235,11 @@ int Tick_MoveObjects(int state) {
 								moveX(&sprites[i], 1);
 							}
 							break;
+						case TORP:
+							if ((loop % 4) == 0) {
+								moveY(&sprites[i], -1);
+							}
+							break;
 					}
 				}
 			}
@@ -274,12 +296,58 @@ int Tick_DrawObjects(int state) {
 /* Spawn Enemies */
 enum Spawn_States {S_INIT, S_SPAWN, S_END};
 	
-int Tick_Spawn(int state) {
-	PORTA &= 0x01;
-	PORTA |= ((power(2, ammo) - 1) & 0xFE);
+/* Shift register:
+ * A1 and A2 = bars 0 and 1
+ * A3 = !SRCLR
+ * A4 = SRCLK
+ * A5 = RCLK
+ * A6 = SER
+ * A7 = Torpedo light
+ */
+void displayAmmo(unsigned char level) {
+	if (level >= 2) { //bars 1 and 0
+		PORTA |= 0x06;
+	} else if (level == 1) {
+		PORTA &= 0xF9;
+		PORTA |= 0x02;
+	}
+	else {
+		PORTA &= 0xF9;
+	}
 	
-	PORTD &= 0xF8;
-	PORTD |= (((power(2, (unsigned short)ammo) - 1) >> 8) & 0x07);
+	//shift out
+	PORTA |= 0x08; //clear register
+	PORTA &= 0xF7;
+	PORTA |= 0x08;
+	
+	short shiftOnes = (short)level - 2;
+	
+	for (unsigned char i = 0; i < 8; i++) {
+		if (shiftOnes > 0) { //SER port
+			PORTA |= 0x40;
+		} else {
+			PORTA &= 0xBF;
+		}
+		shiftOnes--;
+		
+		PORTA &= 0xEF; //pulse shift clock
+		PORTA |= 0x10;
+		PORTA &= 0xEF;
+	}
+	
+	PORTA &= 0xDF; //pulse output clock
+	PORTA |= 0x20;
+	PORTA &= 0xDF;
+}
+	
+int Tick_Spawn(int state) {
+	displayAmmo(ammo);
+	
+	if (torpedo > 0) {
+		PORTA |= 0x80;
+	} else {
+		PORTA &= 0x7F;
+	}
 	
 	switch(state) { /* transitions */
 		case S_INIT:
@@ -318,12 +386,20 @@ int Tick_Spawn(int state) {
 				currentTrack = &laserBlast;
 				ammo--;
 			}
+			if (GetBit(controllerInput, 6) == 1 && sprites[4].show == 0 && torpedo > 0 && sprites[0].y == 0) { //Player torpedo
+				sprites[4].show = 1;
+				sprites[4].x = 3;
+				sprites[4].y = 1;
+				sprites[4].subY = 0;
+				loadCustomChar(sprites[4].table[sprites[4].subY], sprites[4].spriteID);
+				torpedo--;
+			}
 			if ((ADC % 5) == 2 && sprites[6].show == 0) { //Turret
 				sprites[6].show = 1;
 				sprites[6].x = 16;
 				sprites[6].y = 1;
 			}
-			if (cycles >= GAMELEN && sprites[7].show == 0) { //Port
+			if (cycles >= GAMELEN && cycles <= (GAMELEN + 5) && sprites[7].show == 0) { //Port
 				sprites[7].show = 1;
 				sprites[7].x = 16;
 				sprites[7].y = 1;
@@ -340,7 +416,13 @@ int Tick_Spawn(int state) {
 enum Coll_States {DC_INIT, DC_COLL, DC_END};
 	
 unsigned char areColliding(gameObj a, gameObj b) {
-	if (a.spriteID == LPLAYER) {
+	if (a.spriteID == PORT || b.spriteID == PORT) { //only torp can destroy port
+		if (a.spriteID != TORP && b.spriteID != TORP) {
+			return 0;
+		}
+	}
+	
+	if (a.spriteID == LPLAYER) { //kill all objects to the left of laser except for xwing
 		if ((a.x >= b.x) && (b.x != 0) && (a.y == b.y) && (b.spriteID != XWING)) {
 			return 1;
 		}
@@ -390,6 +472,10 @@ int Tick_Collisions(int state) {
 	
 	switch(state) { /* actions */
 		case DC_COLL:
+			if (sprites[4].subY == sprites[4].subYMax) { //torpedo
+				killSprite(&sprites[4]);
+			}
+		
 			for (unsigned char i = 0; i < 8; i++) {
 				for (unsigned char j = 0; j < 8; j++) {
 					if ((i != j) && areColliding(sprites[i], sprites[j]) == 1) {
@@ -477,6 +563,8 @@ enum Endgame_States {EG_INIT, EG_START, EG_RUN, EG_DISP, EG_END, EG_WIN};
 int Tick_Endgame(int state) {
 	switch(state) { /* transitions */
 		case EG_INIT:
+			ammo = 0;
+			torpedo = 0;
 			gameState = 0;
 			LCD_DisplayString(1, "   Trench Run     Press  START");
 			LCD_Cursor(0);
@@ -493,9 +581,13 @@ int Tick_Endgame(int state) {
 			break;
 		case EG_RUN:
 			cycles++;
-			if (sprites[0].show == 0 || cycles > (GAMELEN + 64)) { //if XWING dies or port is missed
+			if (sprites[0].show == 0 || cycles >= (GAMELEN + 64)) { //if XWING dies or port is missed
 				gameState = 2;
 				state = EG_DISP;
+			}
+			else if (cycles > (GAMELEN + 4) && sprites[7].show == 0) {
+				gameState = 2;
+				state = EG_WIN;
 			}
 			if (GetBit(controllerInput, 5) == 1) { //reset
 				state = EG_INIT;
@@ -503,8 +595,19 @@ int Tick_Endgame(int state) {
 			break;
 		case EG_DISP:
 			ammo = 0;
+			torpedo = 0;
 			LCD_ClearScreen();
 			LCD_DisplayString(1, "You Lose!       Score:");
+			printShort(score, 25);
+			LCD_Cursor(0);
+			state = EG_END;
+			break;
+		case EG_WIN:
+			score += (ammo * 15);
+			ammo = 0;
+			torpedo = 0;
+			LCD_ClearScreen();
+			LCD_DisplayString(1, "You Win!        Score:");
 			printShort(score, 25);
 			LCD_Cursor(0);
 			state = EG_END;
