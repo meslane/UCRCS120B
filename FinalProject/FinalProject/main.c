@@ -19,7 +19,7 @@
 #include "sound.h"
 
 #define NULL 0
-#define GAMELEN 300
+#define GAMELEN 600
 
 /* ADC Functions */
 void ADC_init() {
@@ -190,7 +190,7 @@ int Tick_MoveObjects(int state) {
 			break;
 		case MO_MOVE:
 		case MO_END:
-			if (gameState == 2) {
+			if (gameState >= 2) {
 				state = MO_END;
 			}
 			else if (gameState == 0) {
@@ -265,7 +265,7 @@ int Tick_DrawObjects(int state) {
 			break;
 		case DO_DRAW:
 		case DO_END:
-			if (gameState == 2) {
+			if (gameState >= 2) {
 				state = DO_END;
 			}
 			else if (gameState == 0) {
@@ -357,7 +357,7 @@ int Tick_Spawn(int state) {
 			break;
 		case S_SPAWN:
 		case S_END:
-			if (gameState == 2) {
+			if (gameState >= 2) {
 				state = S_END;
 			}
 			else if (gameState == 0) {
@@ -458,7 +458,7 @@ int Tick_Collisions(int state) {
 			break;
 		case DC_COLL:
 		case DC_END:
-			if (gameState == 2) {
+			if (gameState >= 2) {
 				state = DC_END;
 			}
 			else if (gameState == 0) {
@@ -494,7 +494,7 @@ int Tick_Collisions(int state) {
 }
 
 /* play audio task */
-enum Audio_States {A_INIT, A_MENU, A_GAME, A_END};
+enum Audio_States {A_INIT, A_MENU, A_GAME, A_END, A_WIN};
 
 void playCurrentTrack() {
 	static unsigned short i = 0; //note index
@@ -527,31 +527,39 @@ int Tick_Audio(int state) {
 	
 	switch(state) { /* transitions */
 		case A_INIT:
-		if (gameState == 0) {
-			state = A_MENU;
-		}
-		break;
+			if (gameState == 0) {
+				state = A_MENU;
+			}
+			break;
 		case A_MENU:
-		if (currentTrack == NULL) {
-			currentTrack = &mainTheme;
-		}
-		if (gameState == 1) {
-			state = A_GAME;
-			currentTrack = NULL;
-		}
-		break;
+			//if (currentTrack == NULL) {
+				currentTrack = &mainTheme;
+			//}
+			if (gameState == 1) {
+				state = A_GAME;
+				currentTrack = NULL;
+			}
+			break;
+		
 		case A_GAME:
+			if (gameState == 2) {
+				currentTrack = &impMarch;
+				state = A_END;
+			}
+			else if (gameState == 3) {
+				currentTrack = &mainTheme;
+				state = A_WIN;
+			}
 		case A_END:
-		if (gameState == 2) {
-			state = A_END;
-		}
-		else if (gameState == 0) {
-			state = A_INIT;
-		}
-		break;
+		case A_WIN:
+			if (gameState == 0) {
+				state = A_INIT;
+				currentTrack = NULL;
+			}
+			break;
 		default:
-		state = A_INIT;
-		break;
+			state = A_INIT;
+			break;
 	}
 	
 	return state;
@@ -581,12 +589,12 @@ int Tick_Endgame(int state) {
 			break;
 		case EG_RUN:
 			cycles++;
-			if (sprites[0].show == 0 || cycles >= (GAMELEN + 64)) { //if XWING dies or port is missed
+			if (sprites[0].show == 0 || cycles >= (GAMELEN + 60)) { //if XWING dies or port is missed
 				gameState = 2;
 				state = EG_DISP;
 			}
-			else if (cycles > (GAMELEN + 4) && sprites[7].show == 0) {
-				gameState = 2;
+			else if (cycles > (GAMELEN + 2) && sprites[7].show == 0) {
+				gameState = 3;
 				state = EG_WIN;
 			}
 			if (GetBit(controllerInput, 5) == 1) { //reset
@@ -603,7 +611,7 @@ int Tick_Endgame(int state) {
 			state = EG_END;
 			break;
 		case EG_WIN:
-			score += (ammo * 15);
+			score += (ammo * 15) + 50;
 			ammo = 0;
 			torpedo = 0;
 			LCD_ClearScreen();
