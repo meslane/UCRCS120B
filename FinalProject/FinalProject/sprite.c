@@ -119,6 +119,7 @@ void initSprites(gameObj sprites[8]) {
 	sprites[0].show = 1;
 	sprites[0].spriteID = XWING;
 	sprites[0].table = xWingSprites;
+	loadCustomChar(sprites[0].table[sprites[0].subY], sprites[0].spriteID);
 	
 	sprites[1].subYMax = 3;
 	sprites[1].spriteID = TIE;
