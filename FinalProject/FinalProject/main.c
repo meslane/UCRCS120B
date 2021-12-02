@@ -370,7 +370,7 @@ int Tick_Spawn(int state) {
 	
 	switch(state) { /* actions */
 		case S_SPAWN:
-			if ((ADC % 5) == 1 && sprites[1].show == 0) { //TIE Fighter 1
+			if ((ADC % 5) <= 1 && sprites[1].show == 0) { //TIE Fighter 1
 				sprites[1].show = 1;
 				sprites[1].x = 16;
 				sprites[1].y = 0;

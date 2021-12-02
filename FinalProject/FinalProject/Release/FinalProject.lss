@@ -727,8 +727,8 @@ Disassembly of section .text:
      588:	65 e0       	ldi	r22, 0x05	; 5
      58a:	70 e0       	ldi	r23, 0x00	; 0
      58c:	1c d7       	rcall	.+3640   	; 0x13c6 <__udivmodhi4>
-     58e:	01 97       	sbiw	r24, 0x01	; 1
-     590:	f9 f4       	brne	.+62     	; 0x5d0 <Tick_Spawn+0x80>
+     58e:	02 97       	sbiw	r24, 0x02	; 2
+     590:	f8 f4       	brcc	.+62     	; 0x5d0 <Tick_Spawn+0x80>
      592:	80 91 ad 03 	lds	r24, 0x03AD	; 0x8003ad <sprites+0xd>
      596:	81 11       	cpse	r24, r1
      598:	1b c0       	rjmp	.+54     	; 0x5d0 <Tick_Spawn+0x80>
